@@ -137,15 +137,20 @@ static dispatch_once_t onceToken;
 - (void)backgroundPlayable
 {
 #if TARGET_OS_IPHONE
+	NSString* audioCategory = AVAudioSessionCategoryPlayback;
+	#ifdef SPOKEVOICE
+	audioCategory = AVAudioSessionCategoryPlayAndRecord;
+	#endif
+	
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
-    if (audioSession.category != AVAudioSessionCategoryPlayAndRecord) {
+    if (audioSession.category != audioCategory) {
         UIDevice *device = [UIDevice currentDevice];
         if ([device respondsToSelector:@selector(isMultitaskingSupported)]) {
             if (device.multitaskingSupported) {
                 
                 NSError *aError = nil;
-                [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&aError];
+                [audioSession setCategory:audioCategory error:&aError];
                 if (aError) {
                     if (!self.disableLogs) {
                         NSLog(@"HysteriaPlayer: set category error:%@",[aError description]);
