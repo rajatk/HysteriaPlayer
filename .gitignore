@@ -42,3 +42,6 @@ Pods/
 
 Carthage/Build
 HysteriaPlayer/.DS_Store
+
+# OS X
+.DS_Store
