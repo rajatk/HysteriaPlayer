@@ -45,6 +45,7 @@ typedef NS_ENUM(NSInteger, HysteriaPlayerFailed) {
 @protocol HysteriaPlayerDelegate <NSObject>
 
 @optional
+// reports the upcoming index, not the the one that's about to stop
 - (void)hysteriaPlayerWillChangedAtIndex:(NSInteger)index;
 - (void)hysteriaPlayerCurrentItemChanged:(AVPlayerItem *)item;
 - (void)hysteriaPlayerRateChanged:(BOOL)isPlaying;
