@@ -334,10 +334,12 @@ static dispatch_once_t onceToken;
     for (AVPlayerItem *item in self.playerItems) {
         NSInteger checkIndex = [[self getHysteriaIndex:item] integerValue];
         if (checkIndex == index) {
-            [item seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
-                [self insertPlayerItem:item];
-            }];
-            return YES;
+            if (item.status == AVPlayerItemStatusReadyToPlay) {
+                [item seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
+                    [self insertPlayerItem:item];
+                }];
+                return YES;
+            }
         }
     }
     return NO;
@@ -926,7 +928,7 @@ static dispatch_once_t onceToken;
     [[AVAudioSession sharedInstance] setActive:NO error:&error];
     [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
 #endif
-    [[NSNotificationCenter defaultCenter]removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     [self.audioPlayer removeObserver:self forKeyPath:@"status" context:nil];
     [self.audioPlayer removeObserver:self forKeyPath:@"rate" context:nil];
