@@ -840,6 +840,10 @@ static dispatch_once_t onceToken;
     if (![item isEqual:self.audioPlayer.currentItem]) {
         return;
     }
+    
+    if ([self.delegate respondsToSelector:@selector(hysterialPlayerDidReachEndOfCurrentItem)]) {
+        [self.delegate hysterialPlayerDidReachEndOfCurrentItem];
+    }    
 
     NSNumber *currentItemIndex = [self getHysteriaIndex:self.audioPlayer.currentItem];
     if (currentItemIndex) {

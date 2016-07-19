@@ -50,6 +50,7 @@ typedef NS_ENUM(NSInteger, HysteriaPlayerFailed) {
 - (void)hysteriaPlayerCurrentItemChanged:(AVPlayerItem *)item;
 - (void)hysteriaPlayerRateChanged:(BOOL)isPlaying;
 - (void)hysteriaPlayerDidReachEnd;
+- (void)hysterialPlayerDidReachEndOfCurrentItem; // SPOKE
 - (void)hysteriaPlayerCurrentItemPreloaded:(CMTime)time;
 - (void)hysteriaPlayerDidFailed:(HysteriaPlayerFailed)identifier error:(NSError *)error;
 - (void)hysteriaPlayerReadyToPlay:(HysteriaPlayerReadyToPlay)identifier;
