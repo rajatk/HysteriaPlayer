@@ -822,20 +822,21 @@ static dispatch_once_t onceToken;
                
                 CMTime timeTillItemEnd = CMTimeSubtract(self.audioPlayer.currentItem.duration, self.audioPlayer.currentTime);
                 // following line should contain OR bufferedTime >= timeRemaining, in case there are fewer than 5 seconds left to be buffered; i'll use timeRemaining - 1 in case of imprecision
-                NSLog(@"%lld, %lld, %lld, %lld", bufferdTime.value, milestone.value, timeTillItemEnd.value, CMTimeMakeWithSeconds(4.0f, timerange.duration.timescale).value);
-                if ((CMTIME_COMPARE_INLINE(bufferdTime , >, milestone)/* || CMTIME_COMPARE_INLINE(timeTillItemEnd, <, CMTimeMakeWithSeconds(4.0f, timerange.duration.timescale))*/) && self.audioPlayer.currentItem.status == AVPlayerItemStatusReadyToPlay && !interruptedWhilePlaying && !routeChangedWhilePlaying) {
+//                NSLog(@"%lld, %lld, %lld, %lld", bufferdTime.value, milestone.value, timeTillItemEnd.value, CMTimeMakeWithSeconds(4.0f, timerange.duration.timescale).value);
+                if ((CMTIME_COMPARE_INLINE(bufferdTime , >, milestone) || CMTIME_COMPARE_INLINE(bufferdTime, >, CMTimeSubtract(timeTillItemEnd, CMTimeMakeWithSeconds(1.0f, timerange.duration.timescale)))) && self.audioPlayer.currentItem.status == AVPlayerItemStatusReadyToPlay && !interruptedWhilePlaying && !routeChangedWhilePlaying) {
                     if (![self isPlaying]) {
-//                        if (!self.disableLogs) {
+                        if (!self.disableLogs) {
                             NSLog(@"HysteriaPlayer: resume from buffering..");
-//                        }
+                        }
                         [self play];
                         [self longTimeBufferBackgroundCompleted];
+                        
+                        if (CMTIME_COMPARE_INLINE(bufferdTime, >, CMTimeSubtract(timeTillItemEnd, CMTimeMakeWithSeconds(1.0f, timerange.duration.timescale)))) {
+                            [SlackBotClass logPlaybackResume];
+                        }
                     }
-                } else if (CMTIME_COMPARE_INLINE(bufferdTime, >, CMTimeSubtract(timeTillItemEnd, CMTimeMakeWithSeconds(1.0f, timerange.duration.timescale))) && self.audioPlayer.currentItem.status == AVPlayerItemStatusReadyToPlay && !interruptedWhilePlaying && !routeChangedWhilePlaying) {
-                    NSLog(@"woulda shoulda resumed");
-                    [SlackBotClass logPlaybackResume];
                 } else {
-                    NSLog(@"not resuming");
+                    NSLog(@"not resuming from buffering");
                 }
             }
         }
