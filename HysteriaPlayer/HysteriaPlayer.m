@@ -7,7 +7,7 @@
 
 #import "HysteriaPlayer.h"
 #import <objc/runtime.h>
-
+#import "Spoke-Swift.h"
 #if TARGET_OS_IPHONE
     #import <UIKit/UIKit.h>
     #import <AudioToolbox/AudioSession.h>
@@ -819,15 +819,24 @@ static dispatch_once_t onceToken;
                 
                 CMTime bufferdTime = CMTimeAdd(timerange.start, timerange.duration);
                 CMTime milestone = CMTimeAdd(self.audioPlayer.currentTime, CMTimeMakeWithSeconds(5.0f, timerange.duration.timescale));
-                
-                if (CMTIME_COMPARE_INLINE(bufferdTime , >, milestone) && self.audioPlayer.currentItem.status == AVPlayerItemStatusReadyToPlay && !interruptedWhilePlaying && !routeChangedWhilePlaying) {
+               
+                CMTime timeTillItemEnd = CMTimeSubtract(self.audioPlayer.currentItem.duration, self.audioPlayer.currentTime);
+                // following line should contain OR bufferedTime >= timeRemaining, in case there are fewer than 5 seconds left to be buffered; i'll use timeRemaining - 1 in case of imprecision
+//                NSLog(@"%lld, %lld, %lld, %lld", bufferdTime.value, milestone.value, timeTillItemEnd.value, CMTimeMakeWithSeconds(4.0f, timerange.duration.timescale).value);
+                if ((CMTIME_COMPARE_INLINE(bufferdTime , >, milestone) || CMTIME_COMPARE_INLINE(bufferdTime, >, CMTimeSubtract(timeTillItemEnd, CMTimeMakeWithSeconds(1.0f, timerange.duration.timescale)))) && self.audioPlayer.currentItem.status == AVPlayerItemStatusReadyToPlay && !interruptedWhilePlaying && !routeChangedWhilePlaying) {
                     if (![self isPlaying]) {
                         if (!self.disableLogs) {
                             NSLog(@"HysteriaPlayer: resume from buffering..");
                         }
                         [self play];
                         [self longTimeBufferBackgroundCompleted];
+                        
+                        if (CMTIME_COMPARE_INLINE(bufferdTime, >, CMTimeSubtract(timeTillItemEnd, CMTimeMakeWithSeconds(1.0f, timerange.duration.timescale)))) {
+                            [SlackBotClass logPlaybackResume];
+                        }
                     }
+                } else {
+                    NSLog(@"not resuming from buffering");
                 }
             }
         }
