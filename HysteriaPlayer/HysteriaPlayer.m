@@ -330,9 +330,9 @@ static dispatch_once_t onceToken;
                 self.playerItems = playerItems;
             }
             
-            if ([self getLastItemIndex] == index) {
+//            if ([self getLastItemIndex] == index) {
                 [self insertPlayerItem:item];
-            }
+//            }
         });
     }];
 }
