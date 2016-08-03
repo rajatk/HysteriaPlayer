@@ -272,6 +272,7 @@ static dispatch_once_t onceToken;
 
 // MC - this method is a bit odd. it doesn't seem to actually play a playerItem unless it happens to already by ready to play (which is why we need to do it in the delegate method hysteriaPlayerReadyToPlay). but we should start playback there only if player should not be paused
 // additionally, this method was not turning off forced-pause status, so if you paused the player and moved to a different item in the ui and played, our implementation of hysteriaPlayerReadyToPlay was seeing that player should be paused, which should have become false when this method was called. fixed by setting _pauseReason = PauseReasonNone
+// ^ this would all be explained if you are expected to call play() after calling fetchAndPlayPlayerItem() ... but then it wouldn't make sense for it to call audioPlayer.play() if the item status == ready
 - (void)fetchAndPlayPlayerItem:(NSInteger)startAt
 {
     [self willPlayPlayerItemAtIndex:startAt];
@@ -330,9 +331,11 @@ static dispatch_once_t onceToken;
                 self.playerItems = playerItems;
             }
             
-//            if ([self getLastItemIndex] == index) {
+            if ([self getLastItemIndex] == index) {
                 [self insertPlayerItem:item];
-//            }
+            }
+            
+//            NSLog(@"queue: %@", self.playerItems);
         });
     }];
 }
