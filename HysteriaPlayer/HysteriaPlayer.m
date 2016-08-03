@@ -392,6 +392,7 @@ static dispatch_once_t onceToken;
 {
     for (AVPlayerItem *obj in self.audioPlayer.items) {
         [obj seekToTime:kCMTimeZero];
+        [[obj asset] cancelLoading];
         @try {
             [obj removeObserver:self forKeyPath:@"loadedTimeRanges" context:nil];
             [obj removeObserver:self forKeyPath:@"status" context:nil];
