@@ -315,7 +315,7 @@ static dispatch_once_t onceToken;
 - (void)setupPlayerItemWithUrl:(NSURL *)url index:(NSInteger)index
 {
     AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
-    NSArray *keys = @[@"playable"];
+    NSArray *keys = @[@"playable", @"duration"];
     
     AVPlayerItem *item = [AVPlayerItem playerItemWithAsset:asset];
     
@@ -393,12 +393,12 @@ static dispatch_once_t onceToken;
     for (AVPlayerItem *obj in self.audioPlayer.items) {
         [obj seekToTime:kCMTimeZero];
         [[obj asset] cancelLoading];
-        @try {
+//        @try {
             [obj removeObserver:self forKeyPath:@"loadedTimeRanges" context:nil];
             [obj removeObserver:self forKeyPath:@"status" context:nil];
-        } @catch(id anException) {
-            //do nothing, obviously it wasn't attached because an exception was thrown
-        }
+//        } @catch(id anException) {
+//            //do nothing, obviously it wasn't attached because an exception was thrown
+//        }
     }
     
     self.playerItems = [self isMemoryCached] ? [NSArray array] : nil;
@@ -412,10 +412,45 @@ static dispatch_once_t onceToken;
     }
 }
 
+- (void)refreshQueueBeyondCurrentItem
+{
+    for (AVPlayerItem *obj in self.audioPlayer.items) {
+        if (obj != self.audioPlayer.currentItem) {
+            [obj seekToTime:kCMTimeZero];
+            [[obj asset] cancelLoading];
+            @try {
+                [obj removeObserver:self forKeyPath:@"loadedTimeRanges" context:nil];
+                [obj removeObserver:self forKeyPath:@"status" context:nil];
+            } @catch(id anException) {
+                //do nothing, obviously it wasn't attached because an exception was thrown
+            }
+            [self setHysteriaIndex:obj key:nil];
+            [self.audioPlayer removeItem:obj];
+        } else {
+            self.playerItems = [self isMemoryCached] ? [NSArray arrayWithObject:obj] : nil;
+            [self setHysteriaIndex:obj key:[NSNumber numberWithInteger:0]];
+            NSLog(@"asdf item %@", obj);
+            NSLog(@"asdf index %@", [self getHysteriaIndex:obj]);
+        }
+    }
+    self.lastItemIndex = 0;
+//    [self prepareNextPlayerItem];
+    
+    NSLog(@"self.audioPlayer.items : %@", self.audioPlayer.items);
+    NSLog(@"self.audioPlayer.currentItem : %@", self.audioPlayer.currentItem);
+    NSLog(@"self.playerItems : %@", self.playerItems);
+
+//    NSInteger count = self.playerItems.count;
+//    for (NSInteger i = 1; i < count; i++) {
+//        [self removeItemAtIndex:i];
+//    }
+}
+
 - (void)removeItemAtIndex:(NSInteger)index
 {
     if ([self isMemoryCached]) {
         for (AVPlayerItem *item in [NSArray arrayWithArray:self.playerItems]) {
+            NSLog(@"item at index %li : %@", (long)index, item);
             NSInteger checkIndex = [[self getHysteriaIndex:item] integerValue];
             if (checkIndex == index) {
                 NSMutableArray *playerItems = [NSMutableArray arrayWithArray:self.playerItems];
@@ -423,6 +458,7 @@ static dispatch_once_t onceToken;
                 self.playerItems = playerItems;
                 
                 if ([self.audioPlayer.items indexOfObject:item] != NSNotFound) {
+                    // TODO: remove observers, cancel loading!!
                     [self.audioPlayer removeItem:item];
                 }
             } else if (checkIndex > index) {

@@ -148,6 +148,7 @@ typedef NS_ENUM(NSInteger, HysteriaPlayerShuffleMode) {
 - (void)fetchAndPlayPlayerItem: (NSInteger )startAt;
 - (void)removeAllItems;
 - (void)removeQueuesAtPlayer;
+- (void)refreshQueueBeyondCurrentItem;
 
 /**
  *   Be sure you update hysteriaPlayerNumberOfItems or itemsCount when you remove items
