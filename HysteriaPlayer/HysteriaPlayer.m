@@ -314,6 +314,7 @@ static dispatch_once_t onceToken;
 
 - (void)setupPlayerItemWithUrl:(NSURL *)url index:(NSInteger)index
 {
+//    NSLog(@"SETTING UP PLAYER ITEM WITH URL %@", url);
     AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
     NSArray *keys = @[@"playable", @"duration"];
     
@@ -384,6 +385,7 @@ static dispatch_once_t onceToken;
         }
     }
     if ([self.audioPlayer canInsertItem:item afterItem:nil]) {
+//        NSLog(@"INSERTING ITEM %@", item);
         [self.audioPlayer insertItem:item afterItem:nil];
     }
 }
@@ -429,28 +431,24 @@ static dispatch_once_t onceToken;
         } else {
             self.playerItems = [self isMemoryCached] ? [NSArray arrayWithObject:obj] : nil;
             [self setHysteriaIndex:obj key:[NSNumber numberWithInteger:0]];
-            NSLog(@"asdf item %@", obj);
-            NSLog(@"asdf index %@", [self getHysteriaIndex:obj]);
+//            NSLog(@"asdf item %@", obj);
+//            NSLog(@"asdf index %@", [self getHysteriaIndex:obj]);
         }
     }
     self.lastItemIndex = 0;
+    [self prepareNextPlayerItem];
 //    [self prepareNextPlayerItem];
     
-    NSLog(@"self.audioPlayer.items : %@", self.audioPlayer.items);
-    NSLog(@"self.audioPlayer.currentItem : %@", self.audioPlayer.currentItem);
-    NSLog(@"self.playerItems : %@", self.playerItems);
-
-//    NSInteger count = self.playerItems.count;
-//    for (NSInteger i = 1; i < count; i++) {
-//        [self removeItemAtIndex:i];
-//    }
+//    NSLog(@"self.audioPlayer.items : %@", self.audioPlayer.items);
+//    NSLog(@"self.audioPlayer.currentItem : %@", self.audioPlayer.currentItem);
+//    NSLog(@"self.playerItems : %@", self.playerItems);
 }
 
 - (void)removeItemAtIndex:(NSInteger)index
 {
     if ([self isMemoryCached]) {
         for (AVPlayerItem *item in [NSArray arrayWithArray:self.playerItems]) {
-            NSLog(@"item at index %li : %@", (long)index, item);
+//            NSLog(@"item at index %li : %@", (long)index, item);
             NSInteger checkIndex = [[self getHysteriaIndex:item] integerValue];
             if (checkIndex == index) {
                 NSMutableArray *playerItems = [NSMutableArray arrayWithArray:self.playerItems];
