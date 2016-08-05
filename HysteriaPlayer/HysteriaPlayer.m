@@ -917,21 +917,25 @@ static dispatch_once_t onceToken;
                 }
             }
         } else {
-            if (self.audioPlayer.items.count == 1 || !isPreBuffered) {
-                NSInteger nowIndex = [currentItemIndex integerValue];
-                if (nowIndex + 1 < [self hysteriaPlayerItemsCount]) {
-                    [self playNext];
-                } else {
-                    if (_repeatMode == HysteriaPlayerRepeatModeOff) {
-                        _pauseReason = PauseReasonForced;
-                        if ([self.delegate respondsToSelector:@selector(hysteriaPlayerDidReachEnd)]) {
-                            [self.delegate hysteriaPlayerDidReachEnd];
-                        }
-                    }else {
-                        [self fetchAndPlayPlayerItem:0];
+            // Spoke
+            // Disable end of playlist precondition which did not make sense -RK
+            // if (self.audioPlayer.items.count == 1 || !isPreBuffered) {
+            
+            NSInteger nowIndex = [currentItemIndex integerValue];
+            if (nowIndex + 1 < [self hysteriaPlayerItemsCount]) {
+                [self playNext];
+            } else {
+                if (_repeatMode == HysteriaPlayerRepeatModeOff) {
+                    _pauseReason = PauseReasonForced;
+                    if ([self.delegate respondsToSelector:@selector(hysteriaPlayerDidReachEnd)]) {
+                        [self.delegate hysteriaPlayerDidReachEnd];
                     }
+                }else {
+                    [self fetchAndPlayPlayerItem:0];
                 }
             }
+            
+            // }
         }
     }
 }
