@@ -395,12 +395,12 @@ static dispatch_once_t onceToken;
     for (AVPlayerItem *obj in self.audioPlayer.items) {
         [obj seekToTime:kCMTimeZero];
         [[obj asset] cancelLoading];
-//        @try {
+        @try {
             [obj removeObserver:self forKeyPath:@"loadedTimeRanges" context:nil];
             [obj removeObserver:self forKeyPath:@"status" context:nil];
-//        } @catch(id anException) {
-//            //do nothing, obviously it wasn't attached because an exception was thrown
-//        }
+        } @catch(id anException) {
+            //do nothing, obviously it wasn't attached because an exception was thrown
+        }
     }
     
     self.playerItems = [self isMemoryCached] ? [NSArray array] : nil;
@@ -437,7 +437,6 @@ static dispatch_once_t onceToken;
     }
     self.lastItemIndex = 0;
     [self prepareNextPlayerItem];
-//    [self prepareNextPlayerItem];
     
 //    NSLog(@"self.audioPlayer.items : %@", self.audioPlayer.items);
 //    NSLog(@"self.audioPlayer.currentItem : %@", self.audioPlayer.currentItem);
