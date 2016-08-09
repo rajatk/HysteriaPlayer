@@ -7,7 +7,7 @@
 
 #import "HysteriaPlayer.h"
 #import <objc/runtime.h>
-#import "Spoke-Swift.h"
+//#import "Spoke-Swift.h"
 #if TARGET_OS_IPHONE
     #import <UIKit/UIKit.h>
     #import <AudioToolbox/AudioSession.h>
@@ -877,9 +877,9 @@ static dispatch_once_t onceToken;
                         [self play];
                         [self longTimeBufferBackgroundCompleted];
                         
-                        if (CMTIME_COMPARE_INLINE(bufferdTime, >, CMTimeSubtract(timeTillItemEnd, CMTimeMakeWithSeconds(1.0f, timerange.duration.timescale)))) {
-                            [SlackBotClass logPlaybackResume];
-                        }
+                        //if (CMTIME_COMPARE_INLINE(bufferdTime, >, CMTimeSubtract(timeTillItemEnd, CMTimeMakeWithSeconds(1.0f, timerange.duration.timescale)))) {
+                            //[SlackBotClass logPlaybackResume];
+                        //}
                     }
                 } else {
                     NSLog(@"not resuming from buffering");
