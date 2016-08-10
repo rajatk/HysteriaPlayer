@@ -301,7 +301,17 @@ static dispatch_once_t onceToken;
     NSAssert([self.datasource respondsToSelector:@selector(hysteriaPlayerURLForItemAtIndex:preBuffer:)] || [self.datasource respondsToSelector:@selector(hysteriaPlayerAsyncSetUrlForItemAtIndex:preBuffer:)], @"You didn't implement URL getter delegate from HysteriaPlayerDelegate, hysteriaPlayerURLForItemAtIndex:preBuffer: and hysteriaPlayerAsyncSetUrlForItemAtIndex:preBuffer: provides for the use of alternatives.");
     NSAssert([self hysteriaPlayerItemsCount] > index, ([NSString stringWithFormat:@"You are about to access index: %li URL when your HysteriaPlayer items count value is %li, please check hysteriaPlayerNumberOfItems or set itemsCount directly.", (unsigned long)index, (unsigned long)[self hysteriaPlayerItemsCount]]));
     if ([self.datasource respondsToSelector:@selector(hysteriaPlayerURLForItemAtIndex:preBuffer:)] && [self.datasource hysteriaPlayerURLForItemAtIndex:index preBuffer:preBuffer]) {
+        
+        // DEBUG CODE
+        // guard against inserting redundant item
+        if ([[self urlOfPlayerItem:self.audioPlayer.currentItem] isEqual: [self.datasource hysteriaPlayerURLForItemAtIndex:index preBuffer:preBuffer]]) {
+            NSLog(@"ERROR: ATTEMPTING TO INSERT ITEM WITH SAME URL AS CURRENT ITEM");
+            // insert break point here. if this catches, we need to try to figure out how it happened
+            return;
+        }
+        
         dispatch_async(HBGQueue, ^{
+            // question is why it gets wrong URL here
             [self setupPlayerItemWithUrl:[self.datasource hysteriaPlayerURLForItemAtIndex:index preBuffer:preBuffer] index:index];
         });
     } else if ([self.datasource respondsToSelector:@selector(hysteriaPlayerAsyncSetUrlForItemAtIndex:preBuffer:)]) {
@@ -314,6 +324,14 @@ static dispatch_once_t onceToken;
 
 - (void)setupPlayerItemWithUrl:(NSURL *)url index:(NSInteger)index
 {
+    // DEBUG CODE
+    // guard against inserting redundant item
+    if ([[self urlOfPlayerItem:self.audioPlayer.currentItem] isEqual: url]) {
+        NSLog(@"ERROR: ATTEMPTING TO INSERT ITEM WITH SAME URL AS CURRENT ITEM");
+        // insert break point here. if this catches, we need to try to figure out how it happened
+        return;
+    }
+    
 //    NSLog(@"SETTING UP PLAYER ITEM WITH URL %@", url);
     AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
     NSArray *keys = @[@"playable", @"duration"];
@@ -384,10 +402,35 @@ static dispatch_once_t onceToken;
             [self.audioPlayer removeItem:[self.audioPlayer.items objectAtIndex:i]];
         }
     }
+    
+    // DEBUG CODE
+    // guard against inserting redundant item
+    if ([self urlForPlayerItem:self.audioPlayer.currentItem matchesUrlForPlayerItem:item]) {
+        NSLog(@"ERROR: ATTEMPTING TO INSERT ITEM WITH SAME URL AS CURRENT ITEM");
+        // insert break point here. if this catches, we need to try to figure out how it happened
+        return;
+    }
+    
     if ([self.audioPlayer canInsertItem:item afterItem:nil]) {
 //        NSLog(@"INSERTING ITEM %@", item);
         [self.audioPlayer insertItem:item afterItem:nil];
+    } else {
+        NSLog(@"what?");
     }
+}
+
+// these 2 methods are part of stop-gaps for preventing bugs
+-(NSURL *)urlOfPlayerItem:(AVPlayerItem *)playerItem {
+    // get current asset
+    AVAsset *currentPlayerAsset = playerItem.asset;
+    // make sure the current asset is an AVURLAsset
+    if (![currentPlayerAsset isKindOfClass:AVURLAsset.class]) return nil;
+    // return the NSURL
+    return [(AVURLAsset *)currentPlayerAsset URL];
+}
+
+-(BOOL)urlForPlayerItem:(AVPlayerItem *)playerItem1 matchesUrlForPlayerItem:(AVPlayerItem *)playerItem2 {
+    return [[self urlOfPlayerItem:playerItem1] isEqual:[self urlOfPlayerItem:playerItem2]];
 }
 
 - (void)removeAllItems
