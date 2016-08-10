@@ -324,6 +324,9 @@ static dispatch_once_t onceToken;
 
 - (void)setupPlayerItemWithUrl:(NSURL *)url index:(NSInteger)index
 {
+    
+//    NSLog(@"asdf SETTING UP PLAYER ITEM WITH URL %@ at index %li", url, (long)index);
+
     // DEBUG CODE
     // guard against inserting redundant item
     if ([[self urlOfPlayerItem:self.audioPlayer.currentItem] isEqual: url]) {
@@ -332,7 +335,6 @@ static dispatch_once_t onceToken;
         return;
     }
     
-//    NSLog(@"SETTING UP PLAYER ITEM WITH URL %@", url);
     AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
     NSArray *keys = @[@"playable", @"duration"];
     
@@ -341,6 +343,16 @@ static dispatch_once_t onceToken;
     [asset loadValuesAsynchronouslyForKeys:keys completionHandler:^() {
         
         dispatch_async(dispatch_get_main_queue(), ^{
+            
+//            NSLog(@"asdf ASYNC HANDLER - COMPLETING SETUP FOR PLAYER ITEM WITH URL %@ at index %li", url, (long)index);
+
+            // DEBUG CODE
+            // guard against inserting redundant item
+            if ([[self urlOfPlayerItem:self.audioPlayer.currentItem] isEqual: url]) {
+                NSLog(@"ERROR: ATTEMPTING TO INSERT ITEM WITH SAME URL AS CURRENT ITEM");
+                // insert break point here. if this catches, we need to try to figure out how it happened
+                return;
+            }
             
             [self setHysteriaIndex:item key:[NSNumber numberWithInteger:index]];
             
@@ -359,13 +371,12 @@ static dispatch_once_t onceToken;
     }];
 }
 
-
 - (BOOL)findSourceInPlayerItems:(NSInteger)index
 {
     for (AVPlayerItem *item in self.playerItems) {
         NSInteger checkIndex = [[self getHysteriaIndex:item] integerValue];
         if (checkIndex == index) {
-            if (item.status == AVPlayerItemStatusReadyToPlay) {
+            if (item.status == AVPlayerItemStatusReadyToPlay) { // why doesn't this match up with key "playable"??
                 [item seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
                     [self insertPlayerItem:item];
                 }];
